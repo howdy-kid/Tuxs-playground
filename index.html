@@ -1,0 +1,49 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Terminal</title>
+    <link rel="stylesheet" href="https://unpkg.com/xterm/css/xterm.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+        }
+        #terminal {
+            width: 80%;
+            height: 80%;
+            background-color: #1e1e1e;
+        }
+    </style>
+</head>
+<body>
+    <div id="terminal"></div>
+
+    <script src="https://unpkg.com/xterm/lib/xterm.js"></script>
+    <script>
+        const term = new Terminal();
+        term.open(document.getElementById('terminal'));
+
+        const socket = new WebSocket(`ws://${window.location.hostname}:3000`);
+        
+        term.onData(data => {
+            socket.send(data);
+        });
+
+        socket.onmessage = event => {
+            term.write(event.data);
+        };
+
+        term.onResize(({cols, rows}) => {
+            socket.send(JSON.stringify({type: 'resize', cols, rows}));
+        });
+    </script>
+</body>
+</html>
